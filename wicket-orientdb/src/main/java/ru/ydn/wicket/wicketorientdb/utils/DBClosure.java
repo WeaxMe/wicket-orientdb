@@ -107,6 +107,7 @@ public abstract class DBClosure<V> implements Serializable {
 		}.execute();
 	}
 
+
 	/**
 	 * Simplified consumer to execute under admin
 	 * @param consumer - consumer to be executed

@@ -21,12 +21,16 @@ import com.orientechnologies.orient.core.metadata.security.OSecurityUser;
 import com.orientechnologies.orient.core.metadata.security.OUser;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ydn.wicket.wicketorientdb.model.ODocumentModel;
 
 /**
  * Implemetation of {@link WebSession} which shold be used in OrientDB based applications
  */
 public class OrientDbWebSession extends AuthenticatedWebSession {
+
+	private static final Logger LOG = LoggerFactory.getLogger(OrientDbWebSession.class);
 
 	private static final long serialVersionUID = 2L;
 	private String username;
@@ -90,7 +94,9 @@ public class OrientDbWebSession extends AuthenticatedWebSession {
 				newDB.activateOnCurrentThread();
 			}
 			setUser(username, password);
-			userModel.setObject(newDB.getUser().getDocument());
+			ODocument userDoc = newDB.getUser().getDocument();
+			LOG.info("userDoc: {} {}", userDoc, userDoc.getIdentity());
+			userModel.setObject(userDoc);
 			if (inTransaction && !newDB.getTransaction().isActive()) {
 				newDB.begin();
 			}
@@ -99,6 +105,10 @@ public class OrientDbWebSession extends AuthenticatedWebSession {
 			currentDB.activateOnCurrentThread();
 			return false;
 		}
+	}
+
+	public ODocumentModel getUserModel() {
+		return (ODocumentModel) userModel;
 	}
 	
 	protected void setUser(String username, String password)

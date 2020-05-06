@@ -7,6 +7,8 @@ import org.apache.wicket.model.IObjectClassAwareModel;
 import org.apache.wicket.model.IWrapModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.ydn.wicket.wicketorientdb.OrientDbWebSession;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
@@ -22,6 +24,9 @@ import com.orientechnologies.orient.core.record.impl.ODocumentInternal;
  */
 public class ODocumentModel extends LoadableDetachableModel<ODocument> implements IObjectClassAwareModel<ODocument>, IComponentInheritedModel<ODocument>
 {
+	private static final Logger LOG = LoggerFactory.getLogger(ODocumentModel.class);
+
+
 	private static final long serialVersionUID = 1L;
 	private ORID orid;
 	private ODocument savedDocument;
@@ -60,14 +65,22 @@ public class ODocumentModel extends LoadableDetachableModel<ODocument> implement
 		this.autoSave = autoSave;
 		return this;
 	}
-	
+
+	public ORID getOrid() {
+		return orid;
+	}
+
 	@Override
 	protected ODocument load() {
 		if(orid!=null && orid.isValid())
 		{
 			try {
 				ODatabaseDocument db = OrientDbWebSession.get().getDatabase();
-				return db.load(orid);
+				ODocument doc = db.load(orid);
+				if (doc == null) {
+					LOG.info("Can't load document: {}, effective user: {} {}", orid, db.getUser(), db.getUser().getDocument().getIdentity());
+				}
+				return doc;
 			} catch (ORecordNotFoundException e) {
 				return null;
 			}
